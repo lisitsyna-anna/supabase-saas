@@ -39,7 +39,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const sessionStripe = await stripe.billingPortal.sessions.create({
       customer: stripeCustomer.stripe_customer,
-      return_url: 'http://localhost:3000/dashboard',
+      return_url: `${process.env.CLIENT_URL}/dashboard`,
     });
 
     res.send({

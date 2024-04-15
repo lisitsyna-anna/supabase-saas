@@ -104,7 +104,7 @@ const UserContextProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { data } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: 'http://localhost:3000/api/auth/callback',
+          redirectTo: `${process.env.CLIENT_URL}/api/auth/callback`,
         },
       });
       console.log('data login', data);
