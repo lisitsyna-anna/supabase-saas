@@ -82,6 +82,23 @@ const UserContextProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, [supabase]);
 
+  useEffect(() => {
+    if (user) {
+      const subscriptionChannel = supabase
+        .channel('room1')
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'countries', filter: `id=eq.${user.id}` },
+          payload => setUser({ ...user, ...payload.new })
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(subscriptionChannel);
+      };
+    }
+  }, [supabase, user]);
+
   const login = async () => {
     try {
       const { data } = await supabase.auth.signInWithOAuth({
