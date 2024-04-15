@@ -29,16 +29,17 @@ const UserContextProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const getUserProfile = async () => {
       try {
         const {
-          data: { user: sessionUser },
+          data: { session },
           error: sessionUserError,
-        } = await supabase.auth.getUser();
+        } = await supabase.auth.getSession();
 
         if (sessionUserError) {
           throw new Error(`Error getting userSession: ${sessionUserError.message}`);
         }
 
-        if (!sessionUser) {
+        if (!session) {
           console.log('There is no such user');
+          setIsLoadingUser(false);
           return;
         }
 
@@ -48,19 +49,22 @@ const UserContextProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }: PostgrestSingleResponse<Database['public']['Tables']['profile']['Row']> = await supabase
           .from('profile')
           .select('*')
-          .eq('id', sessionUser.id)
+          .eq('id', session.user.id)
           .single();
 
         if (profileError) {
+          setIsLoadingUser(false);
           throw new Error(`Error getting profile: ${profileError.message}`);
         }
 
         if (!profile) {
+          setUser(null);
+          setIsLoadingUser(false);
           console.log('There is no such profile');
           return;
         }
 
-        setUser({ ...sessionUser, ...profile } as CombinedUserType);
+        setUser({ ...session.user, ...profile } as CombinedUserType);
         setIsLoadingUser(false);
       } catch (error) {
         console.error('Error in the getUserProfile: ', error);
@@ -72,6 +76,7 @@ const UserContextProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
       getUserProfile();
     });
+
     return () => {
       listener.subscription.unsubscribe();
     };

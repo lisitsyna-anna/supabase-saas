@@ -33,7 +33,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   if (event) {
     switch (event.type) {
-      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
         const { error: updateSubscriptionError } = await supabase
           .from('profile')
           .update({ is_subscribed: true, interval: event.data.object.items.data[0].plan.interval })
@@ -47,11 +47,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
         break;
 
-      //   case 'customer.subscription.updated':
-      //     break;
+      case 'customer.subscription.deleted':
+        const { error: deleteSubscriptionError } = await supabase
+          .from('profile')
+          .update({ is_subscribed: false, interval: null })
+          .eq('stripe_customer', event.data.object.customer);
 
-      //   case 'customer.subscription.deleted':
-      //     break;
+        if (deleteSubscriptionError) {
+          res
+            .status(Number(deleteSubscriptionError.code))
+            .send('Delete subscription error during subscription deliting event');
+          return;
+        }
+        break;
     }
 
     res.send({ recived: true });

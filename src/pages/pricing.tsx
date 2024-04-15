@@ -18,7 +18,9 @@ const Pricing = ({ plans }: InferGetStaticPropsType<typeof getStaticProps>) => {
       const { data }: AxiosResponse<{ id: string }> = await axios.get(
         `/api/subscription/${planId}`
       );
+
       const stripeClient = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_KEY!);
+
       if (!stripeClient) {
         throw new Error("Stripe client hasn't been initialized.");
       }
@@ -32,20 +34,45 @@ const Pricing = ({ plans }: InferGetStaticPropsType<typeof getStaticProps>) => {
   return (
     <ul className="w-full max-w-3xl mx-auto py-16 flex justify-around">
       {plans.map(plan => (
-        <li key={plan.id} className="w-80 h-40 rounded shadow px-6 py-4">
-          <h2 className="text-xl">{plan.name}</h2>
-          {plan.price && (
-            <p className="text-gray-500">
-              ${plan.price / 100} / {plan.interval}
-            </p>
-          )}
+        <li
+          key={plan.id}
+          className="flex flex-col justify-between w-80 h-40 rounded shadow px-6 py-4"
+        >
+          <div className="flex flex-col gap-2">
+            <h2 className="text-xl">{plan.name}</h2>
+            {plan.price && (
+              <p className="text-gray-500">
+                ${plan.price / 100} / {plan.interval}
+              </p>
+            )}
+          </div>
+
           {!isLoadingUser && (
             <div>
               {showSubscribeBtn && (
-                <button onClick={() => processSubscription(plan.id)}>Subscribe</button>
+                <button
+                  onClick={() => processSubscription(plan.id)}
+                  className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
+                >
+                  Subscribe
+                </button>
               )}
-              {showCreateAccountBtn && <button onClick={login}>Create Account</button>}
-              {showManageSubscriptionBtn && <Link href="/dashboard">Manage Subscription</Link>}
+              {showCreateAccountBtn && (
+                <button
+                  onClick={login}
+                  className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
+                >
+                  Create Account
+                </button>
+              )}
+              {showManageSubscriptionBtn && (
+                <Link
+                  href="/dashboard"
+                  className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
+                >
+                  Manage Subscription
+                </Link>
+              )}
             </div>
           )}
         </li>

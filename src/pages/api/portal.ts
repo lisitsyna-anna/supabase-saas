@@ -36,28 +36,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     apiVersion: '2023-10-16',
   });
 
-  const priceId = typeof req.query.priceId === 'string' ? req.query.priceId : undefined;
-  if (!priceId) {
-    return res.status(400).send('priceId query parameter is required and must be a string');
-  }
-
   try {
-    const stripeSession = await stripe.checkout.sessions.create({
+    const sessionStripe = await stripe.billingPortal.sessions.create({
       customer: stripeCustomer.stripe_customer,
-      mode: 'subscription',
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      success_url: 'http://localhost:3000/payment/success',
-      cancel_url: 'http://localhost:3000/payment/cancelled',
+      return_url: 'http://localhost:3000/dashboard',
     });
 
     res.send({
-      id: stripeSession.id,
+      url: sessionStripe.url,
     });
   } catch (stripeError) {
     console.error('Stripe error:', stripeError);
